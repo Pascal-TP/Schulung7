@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz "Sicher arbeiten in der Elektrotechnik!"</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    .hidden { display: none; }
+    h1, h2 { text-align: center; }
+    label { display: block; margin: 5px 0; }
+    .question { margin-bottom: 20px; }
+    button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+    #logo { max-width: 150px; margin: 20px auto; display: block; }
+    .result { font-size: 20px; text-align: center; margin-top: 30px; }
+    @media print {
+      button, .nav { display: none !important; }
+    }
+ .ergebnis-box {
+  border: 3px solid #000;
+  padding: 30px;
+  margin-top: 20px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fff;
+}
+
+
+
+ </style>
+</head>
+<body>
+
+  <!-- STARTSEITE -->
+  <div id="start-screen">
+    <img id="logo" src="logo.png" alt="Firmenlogo">
+    <h1>Willkommen zum Quiz: "Sicher arbeiten in der Elektrotechnik!"</h1>
+    <p>- Das Quiz besteht aus 6 Fragen, es können auch mehrere Antworten richtig sein.</p>
+<p>- Bestanden ist dieses Quiz mit mindestens 5 richtig beantworteten Fragen.</p>
+<p>- Sollten Sie nicht bestehen, müssen Sie von vorne beginnen.</p>
+<p>- Am Ende speichern Sie bitte Ihren Schulungsnachweis und senden diesen per E-Mail an Ihren Vorgesetzten.</p>
+<p>  (Wählen Sie anstelle des Druckers "als pdf speichern" aus, um den Nachweis an einen beliebigen Ort zu speichern.)</p>
+</br>
+<p>Bitte geben Sie Ihren Namen und das aktuelle Datum ein, bevor Sie mit dem Quiz starten.</p>
+</br>
+
+    <label>Datum:
+      <input type="date" id="input-datum" required>
+    </label></br>
+    <label>Name:
+      <input type="text" id="input-name" required>
+    </label></br>
+    <button onclick="startQuiz()">Quiz starten</button>
+  </div>
+
+  <!-- FRAGEN -->
+  <div id="quiz-screen" class="hidden">
+<img id="logo" src="logo.png" alt="Firmenlogo">
+    <div id="frage-container"></div>
+    <div class="nav"></br>
+      <button onclick="zurueckZumStart()">⬅ Zurück zum Start</button>
+      <button onclick="naechsteFrage()">Weiter ➡</button>
+    </div>
+  </div>
+
+  <!-- ERGEBNIS -->
+  <div id="result-screen" class="hidden">
+<div class="ergebnis-box"> 
+    <img id="logo" src="logo.png" alt="Firmenlogo">
+    <h1>Ergebnis</h1>
+<h1>&</h1>
+<h1>Schulungsnachweis</h1>
+<h1>jährliche Unterweisung "Sicher arbeiten in der Elektrotechnik"</h1>
+<h1>Der Beschäftigte wurde unterwiesen und hat an einer Kontrollprüfung teilgenommen.</h1>
+
+    <p><strong>Name:</strong> <span id="ausgabe-name"></span></p>
+    <p><strong>Datum:</strong> <span id="ausgabe-datum"></span></p>
+    <p><strong>Testergebnis:</strong> <span id="ausgabe-ergebnis"></span></p>
+    <div class="result">
+</br>
+      <p>Mit dem Versenden der PDF-Datei bestätige ich die Schulung selbst durchgeführt und die Inhalte verstanden zu haben.</p>
+ </div>
+    </div>
+    <button onclick="window.print()">💾 Als PDF speichern</button>
+    <button onclick="location.reload()">🔁 Neu starten</button>
+    <button onclick="window.location.href='index.html'">Zurück zum Skript</button>
+  </div>
+
+  <script>
+    // ================================
+    // QUIZ-FRAGEN DEFINIEREN
+    // ================================
+        const fragen = [
+      {
+        frage: "Ein Mensch erleidet einen Stromschlag. Welche Wirkung hat dieser auf dem menschlichen Körper?",
+        antworten: ["Verbrennungen", "Hautausschlag / Juckreiz", "Tod"],
+        richtig: [0, 2]
+      },
+      {
+        frage: "Wie kann es zu einer Lichtbogenbildung kommen?",
+        antworten: ["Niemals, da elektrische Anlagen immer gut abgesichert sind.", "Niemals, wenn ich gut isoliert bin.", "Bei Verbindung zweier leitfähiger Teile (Kurzschuss)"],
+        richtig: [2]
+      },
+      {
+        frage: "Die fünf Sicheheitsregeln - welches Vorgehen ist korrekt?",
+        antworten: ["(1) Freischalten, (2) Spannungsreiheit feststellen, (3) gegen Wiedereinschalten sichern, (4) Erden und Kurzschließen, (5) Benachbarte unter Spannung stehende Teile abdecken oder abschranken", "(1) Freischalten, (2) gegen Wiedereinschalten sichern, (3) Spannungsreiheit feststellen, (4) Erden und Kurzschließen, (5) Benachbarte unter Spannung stehende Teile abdecken oder abschranken", "Die Reihenfolge spielt keine Rolle."],
+        richtig: [1]
+      },
+      {
+        frage: "Ich stelle einen Schaden an einem Klemmkasten, einem Gehäuse oder einer Leitung u.a. fest, was mache ich?",
+        antworten: ["Wenn das Betriebsmittel funktioniert, mache ich gar nichts.", "Ich melde es einer Elektrofachkraft und/oder mienem Vorgesetzten.", "Ich sichere es gegen weiterer Verwendung, z.B. Stecker ziehen und mit einem Schild kenntlich machen."],
+        richtig: [1, 2]
+      },
+      {
+        frage: "Welche Spannung liegt überlicherweise an unseren normalen Schuko-Steckdosen an?",
+        antworten: ["110 V", "24 V", "230 V"],
+        richtig: [2]
+      },
+      {
+        frage: "Wechselrichter gibt es in zwei Ausführungen - mit und ohne galvanischer Trennung. Was ist das Hauptmerkmal eines Wechselrichters mit galvanischer Trennung?",
+        antworten: ["Der Wechselrichter arbeitet mit Trafo.", "Der Wechselrichter ist besonders leicht und preiswert.", "Fangfrage - es gibt keine Wechselrichter mit galvanischer Trennung."],
+        richtig: [0]
+      }
+    ];
+
+
+    // ================================
+    // VARIABLEN
+    // ================================
+    let aktuelleFrage = 0;
+    let benutzerAntworten = [];
+    let name = "";
+    let datum = "";
+
+    // ================================
+    // STARTEN
+    // ================================
+    function startQuiz() {
+      name = document.getElementById("input-name").value.trim();
+      datum = document.getElementById("input-datum").value;
+
+      if (!name || !datum) {
+        alert("Bitte Name und Datum eingeben.");
+        return;
+      }
+
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      zeigeFrage();
+    }
+
+    function zurueckZumStart() {
+      if (confirm("Willst du wirklich abbrechen und zum Start zurückkehren?")) {
+        location.reload();
+      }
+    }
+
+    // ================================
+    // FRAGE ZEIGEN
+    // ================================
+    function zeigeFrage() {
+      const frageObj = fragen[aktuelleFrage];
+      const container = document.getElementById("frage-container");
+      container.innerHTML = `
+        <h2>Frage ${aktuelleFrage + 1} von ${fragen.length}</h2>
+        <p class="question">${frageObj.frage}</p>
+        ${frageObj.antworten.map((antwort, i) => `
+          <label>
+            <input type="checkbox" name="antwort" value="${i}">
+            ${antwort}
+          </label>
+        `).join("")}
+      `;
+    }
+
+    // ================================
+    // NÄCHSTE FRAGE ODER AUSWERTUNG
+    // ================================
+    function naechsteFrage() {
+      const auswahl = Array.from(document.querySelectorAll('input[name="antwort"]:checked')).map(el => parseInt(el.value));
+      benutzerAntworten[aktuelleFrage] = auswahl;
+
+      aktuelleFrage++;
+
+      if (aktuelleFrage < fragen.length) {
+        zeigeFrage();
+      } else {
+        auswertung();
+      }
+    }
+
+    // ================================
+    // AUSWERTUNG
+    // ================================
+    function auswertung() {
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+
+      let punkte = 0;
+
+      fragen.forEach((frage, index) => {
+        const richtig = frage.richtig.sort().join();
+        const gegeben = (benutzerAntworten[index] || []).sort().join();
+        if (richtig === gegeben) {
+          punkte++;
+        }
+      });
+
+      const bestanden = punkte >= 5;
+
+      document.getElementById("ausgabe-name").textContent = name;
+      document.getElementById("ausgabe-datum").textContent = datum;
+      document.getElementById("ausgabe-ergebnis").textContent = bestanden
+        ? `✅ Bestanden (${punkte} von ${fragen.length} richtig)`
+        : `❌ Leider nicht bestanden (${punkte} von ${fragen.length} richtig)`;
+    }
+  </script>
+</body>
+</html>
