@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Bilderanzeige mit Quiz</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    img { max-width: 90%; height: auto; border: 1px solid #ccc; margin-bottom: 10px; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    #quiz-button {
+      display: none;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Sicher arbeiten in der Elektrotechnik</h2>
+
+  <img id="bild" src="bilder_pol/bild1.jpg" alt="Bild 1">
+  <br>
+
+  <button onclick="ersteSeite()">⏮ first page</button>
+  <button onclick="zurueck()">◀ back</button>
+  <button id="weiter-button" onclick="weiter()">next page ▶</button>
+  <button id="letzte-button" onclick="letzteSeite()">last page ⏭</button>
+
+<!-- Quiz-Button, erscheint nur auf letzter Seite -->
+  <a href="quiz.html"><button id="quiz-button">🧠 start quiz</button></a>
+
+
+  <p>Seite <span id="seite">1</span> von <span id="gesamtseiten">5</span></p>
+
+  
+
+  <script>
+    // 🔢 Nur existierende Bilder eintragen
+    const bilder = [
+      "bilder_pol/bild1.jpg",
+      "bilder_pol/bild2.jpg",
+      "bilder_pol/bild3.jpg",
+      "bilder_pol/bild4.jpg",
+      "bilder_pol/bild5.jpg",
+      "bilder_pol/bild6.jpg",
+      "bilder_pol/bild7.jpg",
+      "bilder_pol/bild8.jpg",
+      "bilder_pol/bild9.jpg",
+      "bilder_pol/bild10.jpg",
+      "bilder_pol/bild11.jpg",
+      "bilder_pol/bild12.jpg",
+      "bilder_pol/bild13.jpg",
+      "bilder_pol/bild14.jpg",
+      "bilder_pol/bild15.jpg",
+      "bilder_pol/bild16.jpg",
+      "bilder_pol/bild17.jpg",
+      "bilder_pol/bild18.jpg",
+      "bilder_pol/bild19.jpg",
+      "bilder_pol/bild20.jpg",
+      "bilder_pol/bild21.jpg",
+      "bilder_pol/bild22.jpg",
+      "bilder_pol/bild23.jpg",
+      "bilder_pol/bild24.jpg",
+      "bilder_pol/bild25.jpg",
+      "bilder_pol/bild26.jpg",
+      "bilder_pol/bild27.jpg",
+      "bilder_pol/bild28.jpg",
+      "bilder_pol/bild29.jpg",
+      "bilder_pol/bild30.jpg",
+      "bilder_pol/bild31.jpg",
+      "bilder_pol/bild32.jpg",
+      "bilder_pol/bild33.jpg",
+      "bilder_pol/bild34.jpg",
+      "bilder_pol/bild35.jpg",
+      "bilder_pol/bild36.jpg",
+      "bilder_pol/bild37.jpg",
+      "bilder_pol/bild38.jpg",
+      "bilder_pol/bild39.jpg",
+      "bilder_pol/bild40.jpg",
+      "bilder_pol/bild41.jpg"
+    ];
+
+    let aktuelleSeite = 0;
+
+    function zeigeBild(index) {
+      const img = document.getElementById("bild");
+      img.src = bilder[index];
+      img.alt = `Bild ${index + 1}`;
+      document.getElementById("seite").textContent = index + 1;
+
+      // Quiz-Button und Weiter-/Letzte-Buttons steuern
+      const quizBtn = document.getElementById("quiz-button");
+      const weiterBtn = document.getElementById("weiter-button");
+      const letzteBtn = document.getElementById("letzte-button");
+
+      const istLetztesBild = (index === bilder.length - 1);
+      quizBtn.style.display = istLetztesBild ? "inline-block" : "none";
+      weiterBtn.style.display = istLetztesBild ? "none" : "inline-block";
+      letzteBtn.style.display = istLetztesBild ? "none" : "inline-block";
+    }
+
+    function ersteSeite() {
+      aktuelleSeite = 0;
+      zeigeBild(aktuelleSeite);
+    }
+
+    function letzteSeite() {
+      aktuelleSeite = bilder.length - 1;
+      zeigeBild(aktuelleSeite);
+    }
+
+    function weiter() {
+      if (aktuelleSeite < bilder.length - 1) {
+        aktuelleSeite++;
+        zeigeBild(aktuelleSeite);
+      }
+    }
+
+    function zurueck() {
+      if (aktuelleSeite > 0) {
+        aktuelleSeite--;
+        zeigeBild(aktuelleSeite);
+      }
+    }
+
+    // Gesamtseiten anzeigen und erstes Bild laden
+    document.getElementById("gesamtseiten").textContent = bilder.length;
+    zeigeBild(aktuelleSeite);
+  </script>
+
+</body>
+</html>
