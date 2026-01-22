@@ -25,8 +25,16 @@
   margin-right: auto;
   background-color: #fff;
 }
-
-
+.translate-btn {
+      background-color:#4285F4; 
+      color:white; 
+      border:none; 
+      padding:8px 16px; 
+      border-radius:5px; 
+      font-size:14px;
+      margin:10px 0;
+      cursor:pointer;
+    }
 
  </style>
 </head>
@@ -36,6 +44,10 @@
   <div id="start-screen">
     <img id="logo" src="logo.png" alt="Firmenlogo">
     <h1>Willkommen zum Quiz: "Sicher arbeiten in der Elektrotechnik!"</h1>
+<div style="text-align:center; margin-bottom:20px;">
+  <button class="translate-btn" onclick="openStartTextTranslate()">Google Translator</button>
+</div>
+<div id="start-text">
     <p>- Das Quiz besteht aus 6 Fragen, es können auch mehrere Antworten richtig sein.</p>
 <p>- Bestanden ist dieses Quiz mit mindestens 5 richtig beantworteten Fragen.</p>
 <p>- Sollten Sie nicht bestehen, müssen Sie von vorne beginnen.</p>
@@ -44,14 +56,14 @@
 </br>
 <p>Bitte geben Sie Ihren Namen und das aktuelle Datum ein, bevor Sie mit dem Quiz starten.</p>
 </br>
-
+</div>
     <label>Datum:
       <input type="date" id="input-datum" required>
     </label></br>
     <label>Name:
       <input type="text" id="input-name" required>
     </label></br>
-    <button onclick="startQuiz()">Quiz starten</button>
+    <button onclick="startQuiz()">🧠 start quiz</button>
   </div>
 
   <!-- FRAGEN -->
@@ -59,8 +71,8 @@
 <img id="logo" src="logo.png" alt="Firmenlogo">
     <div id="frage-container"></div>
     <div class="nav"></br>
-      <button onclick="zurueckZumStart()">⬅ Zurück zum Start</button>
-      <button onclick="naechsteFrage()">Weiter ➡</button>
+      <button onclick="zurueckZumStart()">⬅ back to start</button>
+      <button onclick="naechsteFrage()">next page ➡</button>
     </div>
   </div>
 
@@ -82,9 +94,9 @@
       <p>Mit dem Versenden der PDF-Datei bestätige ich die Schulung selbst durchgeführt und die Inhalte verstanden zu haben.</p>
  </div>
     </div>
-    <button onclick="window.print()">💾 Als PDF speichern</button>
-    <button onclick="location.reload()">🔁 Neu starten</button>
-    <button onclick="window.location.href='index.html'">Zurück zum Skript</button>
+    <button onclick="window.print()">💾 save as PDF</button>
+    <button onclick="location.reload()">🔁 start again</button>
+    <button onclick="window.location.href='index.html'">back to the script</button>
   </div>
 
   <script>
@@ -156,14 +168,20 @@
       }
     }
 
+    
     // ================================
-    // FRAGE ZEIGEN
+    // FRAGE ZEIGEN MIT GOOGLE TRANSLATE BUTTON
     // ================================
     function zeigeFrage() {
       const frageObj = fragen[aktuelleFrage];
       const container = document.getElementById("frage-container");
+
+      // HTML für die aktuelle Frage + Übersetzen-Button
       container.innerHTML = `
         <h2>Frage ${aktuelleFrage + 1} von ${fragen.length}</h2>
+        <div style="text-align:center;">
+          <button class="translate-btn" onclick="openQuestionTranslate(${aktuelleFrage})">Google Translator</button>
+        </div>
         <p class="question">${frageObj.frage}</p>
         ${frageObj.antworten.map((antwort, i) => `
           <label>
@@ -171,8 +189,29 @@
             ${antwort}
           </label>
         `).join("")}
-      `;
+        `;
     }
+
+    // ================================
+    // EINZELNE FRAGE IN GOOGLE TRANSLATE ÖFFNEN
+    // ================================
+    function openQuestionTranslate(index) {
+      const f = fragen[index];
+      let text = `Frage: ${f.frage}\n`;
+      f.antworten.forEach((a, i) => {
+        text += `${i+1}. ${a}\n`;
+      });
+      const url = "https://translate.google.com/?sl=de&tl=en&text=" + encodeURIComponent(text) + "&op=translate";
+      window.open(url, "_blank");
+    }
+
+function openStartTextTranslate() {
+  // Alles innerhalb des Starttext-Bereichs auswählen
+  const startText = document.getElementById("start-text").innerText;
+  const url = "https://translate.google.com/?sl=de&tl=en&text=" + encodeURIComponent(startText) + "&op=translate";
+  window.open(url, "_blank");
+}
+
 
     // ================================
     // NÄCHSTE FRAGE ODER AUSWERTUNG
@@ -189,6 +228,7 @@
         auswertung();
       }
     }
+
 
     // ================================
     // AUSWERTUNG
