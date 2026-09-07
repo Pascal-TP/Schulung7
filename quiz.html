@@ -37,6 +37,8 @@
     }
 
  </style>
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-functions-compat.js"></script>
 </head>
 <body>
 
@@ -51,8 +53,9 @@
     <p>- Das Quiz besteht aus 6 Fragen, es können auch mehrere Antworten richtig sein.</p>
 <p>- Bestanden ist dieses Quiz mit mindestens 5 richtig beantworteten Fragen.</p>
 <p>- Sollten Sie nicht bestehen, müssen Sie von vorne beginnen.</p>
-<p>- Am Ende speichern Sie bitte Ihren Schulungsnachweis und senden diesen per E-Mail an: arbeitssicherheit@tpholding.de</p>
-<p>  (Wählen Sie anstelle des Druckers "als pdf speichern" aus, um den Nachweis an einen beliebigen Ort zu speichern.)</p>
+<div id="legacy-proof-hint"><p>- Am Ende speichern Sie bitte Ihren Schulungsnachweis und senden diesen per E-Mail an: arbeitssicherheit@tpholding.de</p>
+<p>  (Wählen Sie anstelle des Druckers "als pdf speichern" aus, um den Nachweis an einen beliebigen Ort zu speichern.)</p></div>
+<p id="integrated-proof-hint" class="hidden"><strong>TP-Personalmanagement:</strong> Nach bestandener Prüfung wird der Abschluss automatisch übernommen. Ein PDF-Upload ist nicht erforderlich.</p>
 </br>
 <p>Bitte geben Sie Ihren Namen und das aktuelle Datum ein, bevor Sie mit dem Quiz starten.</p>
 </br>
@@ -91,10 +94,12 @@
     <p><strong>Testergebnis:</strong> <span id="ausgabe-ergebnis"></span></p>
     <div class="result">
 </br>
-      <p>Mit dem Versenden der PDF-Datei bestätige ich die Schulung selbst durchgeführt und die Inhalte verstanden zu haben.</p>
+      <p id="result-confirmation">Mit dem Versenden der PDF-Datei bestätige ich die Schulung selbst durchgeführt und die Inhalte verstanden zu haben.</p>
+      <p id="tp-transfer-status" class="hidden"></p>
+      <p id="tp-close-hint" class="hidden"><strong>Sie können dieses Fenster nun schließen.</strong></p>
  </div>
     </div>
-    <button onclick="window.print()">💾 save as PDF</button>
+    <button id="save-pdf-btn" onclick="window.print()">💾 save as PDF</button>
     <button onclick="location.reload()">🔁 start again</button>
     <button onclick="window.location.href='index.html'">back to the script</button>
   </div>
@@ -144,6 +149,78 @@
     let benutzerAntworten = [];
     let name = "";
     let datum = "";
+
+
+    // ================================
+    // TP-PERSONALMANAGEMENT BRÜCKE
+    // ================================
+    const TP_SESSION_KEY = "tpPersonnelTrainingSession";
+    const tpSessionToken = sessionStorage.getItem(TP_SESSION_KEY) || new URLSearchParams(window.location.search).get("tpSession") || "";
+    let tpSessionActive = false;
+    let tpFunctions = null;
+
+    function localDateKey(){
+      const d=new Date(),p=n=>String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+    }
+
+    async function initTpSession(){
+      if(!tpSessionToken)return;
+      try{
+        sessionStorage.setItem(TP_SESSION_KEY,tpSessionToken);
+        const config={
+          apiKey:"AIzaSyCcHI5sGR7sFwrWRpo2uQ3Plm0HpTvqr30",
+          authDomain:"kalkpro-4cc29.firebaseapp.com",
+          projectId:"kalkpro-4cc29",
+          storageBucket:"kalkpro-4cc29.firebasestorage.app",
+          messagingSenderId:"185447466021",
+          appId:"1:185447466021:web:ed1e448d9b92e151b52bcc"
+        };
+        const app=firebase.apps.find(a=>a.name==="tp-training-bridge")||firebase.initializeApp(config,"tp-training-bridge");
+        tpFunctions=app.functions("europe-west1");
+        const getSession=tpFunctions.httpsCallable("getPersonnelTrainingSession");
+        const result=await getSession({token:tpSessionToken}),data=result.data||{};
+        tpSessionActive=true;
+        document.getElementById("input-name").value=data.displayName||"";
+        document.getElementById("input-name").readOnly=true;
+        document.getElementById("input-datum").value=localDateKey();
+        document.getElementById("input-datum").readOnly=true;
+        document.getElementById("legacy-proof-hint").classList.add("hidden");
+        document.getElementById("integrated-proof-hint").classList.remove("hidden");
+      }catch(e){
+        console.error("TP-Schulungstoken konnte nicht geladen werden:",e);
+        alert("Die Verbindung zum TP-Personalmanagement ist nicht mehr gültig. Bitte die Schulung erneut aus dem Personalmanagement öffnen.");
+      }
+    }
+
+    async function reportTpCompletion(passed,score,total){
+      if(!tpSessionActive||!tpFunctions)return;
+      const status=document.getElementById("tp-transfer-status");
+      status.classList.remove("hidden");
+      if(!passed){
+        status.textContent="Die Prüfung wurde nicht bestanden. Im TP-Personalmanagement wird noch kein Abschluss eingetragen.";
+        return;
+      }
+      status.textContent="Der Abschluss wird an das TP-Personalmanagement übermittelt …";
+      try{
+        const complete=tpFunctions.httpsCallable("completePersonnelTrainingSession");
+        const result=await complete({token:tpSessionToken,passed:true,score,total});
+        if(result.data?.completed!==true)throw new Error("Abschluss wurde nicht bestätigt.");
+        if(window.opener&&!window.opener.closed){
+          window.opener.postMessage({type:"TP_TRAINING_COMPLETED",token:tpSessionToken},"*");
+        }
+        document.getElementById("save-pdf-btn").classList.add("hidden");
+        document.getElementById("result-confirmation").textContent="Mit dem erfolgreichen Abschluss bestätige ich, die Schulung selbst durchgeführt und die Inhalte verstanden zu haben.";
+        status.textContent="✓ Der Abschluss wurde digital an das TP-Personalmanagement gemeldet. Ein PDF-Upload ist nicht erforderlich.";
+        document.getElementById("tp-close-hint").classList.remove("hidden");
+        sessionStorage.removeItem(TP_SESSION_KEY);
+      }catch(e){
+        console.error("TP-Schulungsabschluss konnte nicht gemeldet werden:",e);
+        status.textContent="Der Abschluss konnte noch nicht an das TP-Personalmanagement gemeldet werden. Bitte dieses Fenster geöffnet lassen und die Schulung erneut aus dem Personalmanagement starten, falls der Abschluss dort nicht erscheint.";
+      }
+    }
+
+    initTpSession();
 
     // ================================
     // STARTEN
@@ -254,6 +331,8 @@ function openStartTextTranslate() {
       document.getElementById("ausgabe-ergebnis").textContent = bestanden
         ? `✅ Bestanden (${punkte} von ${fragen.length} richtig)`
         : `❌ Leider nicht bestanden (${punkte} von ${fragen.length} richtig)`;
+
+      reportTpCompletion(bestanden,punkte,fragen.length);
     }
   </script>
 </body>

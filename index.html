@@ -104,5 +104,19 @@
     </div>
 </div>
 
+
+<script>
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('tpSession');
+  if(token){
+    sessionStorage.setItem('tpPersonnelTrainingSession',token);
+    params.delete('tpSession');
+    const rest=params.toString();
+    history.replaceState({},document.title,window.location.pathname+(rest?'?'+rest:'')+window.location.hash);
+  }
+})();
+</script>
+
 </body>
 </html>
